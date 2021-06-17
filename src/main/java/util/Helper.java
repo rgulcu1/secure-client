@@ -1,5 +1,6 @@
 package util;
 
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -85,6 +86,59 @@ public class Helper {
             result = new BigInteger(n.bitLength(), rand);
         }
         return result;
+    }
+
+    public static String hexXOR(String a, String b) {
+
+        int n1 = Integer.parseInt(a, 16);
+        int n2 = Integer.parseInt(b, 16);
+        int n3 = n1 ^ n2;
+        return String.format("%02x", n3).toUpperCase();
+    }
+
+    public static <T> T[] concatenateArrays(T[] a, T[] b) {
+        int aLen = a.length;
+        int bLen = b.length;
+
+        @SuppressWarnings("unchecked")
+        T[] c = (T[]) Array.newInstance(a.getClass().getComponentType(), aLen + bLen);
+        System.arraycopy(a, 0, c, 0, aLen);
+        System.arraycopy(b, 0, c, aLen, bLen);
+
+        return c;
+    }
+
+    public static String[] unrollStringArray(String[][] doubleArray) {
+
+        int length = doubleArray.length;
+        int length1 = doubleArray[0].length;
+
+        String[] unrolledLoop = new String[length * length1];
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length1; j++) {
+                unrolledLoop[i*length1 + j] = doubleArray[i][j];
+            }
+        }
+
+        return unrolledLoop;
+    }
+
+    public static void deepCopy2DArray(Object[][] destination, Object[][] source) {
+        for (int i = 0; i <4 ; i++) {
+            destination[i] = source[i].clone();
+        }
+    }
+
+    public static String[] byteToStringArray(byte[] byteArr) {
+
+        final String[] strArr = new String[byteArr.length];
+
+        for (int i = 0; i < byteArr.length; i++) {
+            final String byteAsHex = Integer.toHexString(byteArr[i]).substring(Math.max(Integer.toHexString(byteArr[i]).length() - 2, 0));
+            strArr[i] = ("00" + byteAsHex).substring(byteAsHex.length()).toUpperCase();
+        }
+
+        return strArr;
     }
 
 }

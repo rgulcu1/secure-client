@@ -4,20 +4,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-public class RegisterPage extends JPanel {
+public class LoginPage extends JPanel {
 
-    public RegisterPage() {
+    public LoginPage() {
         setLayout(null);
         addComponents();
     }
 
     private void addComponents() {
 
-        JLabel registerLabel = new JLabel("Register");
-        registerLabel.setFont(registerLabel.getFont().deriveFont(64.0f));
-        this.add(registerLabel);
-        registerLabel.setBounds(500 - registerLabel.getPreferredSize().width/2,100,registerLabel.getPreferredSize().width, registerLabel.getPreferredSize().height);
+        JLabel loginLabel = new JLabel("Login");
+        loginLabel.setFont(loginLabel.getFont().deriveFont(64.0f));
+        this.add(loginLabel);
+        loginLabel.setBounds(500 - loginLabel.getPreferredSize().width/2,100,loginLabel.getPreferredSize().width, loginLabel.getPreferredSize().height);
 
 
         JLabel userNameLabel = new JLabel("username: ");
@@ -46,14 +48,33 @@ public class RegisterPage extends JPanel {
         passInput.setBounds(360,270,300,50);
         passInput.setFont(new Font("SansSerif", Font.BOLD, 20));
 
-        JButton button = new JButton("Register");
+        JButton button = new JButton("Login");
         add(button);
         button.setBounds(400,340,200,75);
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Insert code here
-                MainPage.register(usernameInput.getText(), String.valueOf(passInput.getPassword()));
+                MainPage.login(usernameInput.getText(), String.valueOf(passInput.getPassword()));
             }
         });
+
+        JLabel goToRegisterLabel = new JLabel("Don't have an account yet.");
+        goToRegisterLabel.setFont(goToRegisterLabel.getFont().deriveFont(10));
+        this.add(goToRegisterLabel);
+        goToRegisterLabel.setBounds(390,420,goToRegisterLabel.getPreferredSize().width, goToRegisterLabel.getPreferredSize().height);
+
+        JLabel goToRegisterLabel2 = new JLabel("Sign Up!");
+        goToRegisterLabel2.setFont(goToRegisterLabel2.getFont().deriveFont(10));
+        this.add(goToRegisterLabel2);
+        goToRegisterLabel2.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        goToRegisterLabel2.setForeground(Color.blue);
+        goToRegisterLabel2.setBounds(560,420,goToRegisterLabel.getPreferredSize().width, goToRegisterLabel.getPreferredSize().height);
+        goToRegisterLabel2.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent me)
+            {
+                MainPage.goToRegisterPage();
+            }
+        });
+
     }
 }
