@@ -12,8 +12,6 @@ public class client {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         Helper.calculateFirstFewPrime();
-
-        ServerComm serverComm  = new ServerComm();
         MainPage mainPage = new MainPage("sa");
         mainPage.setVisible(true);
         mainPage.setSize(1000, 700);

@@ -13,6 +13,7 @@ public class FlowPage extends JPanel {
     public FlowPage() {
         setLayout(null);
         addElements();
+        addNotificationHandler();
     }
 
     private void addElements() {
@@ -25,6 +26,17 @@ public class FlowPage extends JPanel {
                 browseButtonActionPerformed(e);
             }
         });
+
+    }
+
+    private void addNotificationHandler() {
+        int delay = 3000; //milliseconds
+        ActionListener taskPerformer = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                MainPage.askForNewImage();
+            }
+        };
+        new Timer(delay, taskPerformer).start();
     }
 
 

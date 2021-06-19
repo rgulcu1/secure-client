@@ -26,7 +26,8 @@ public final class Constants {
         REGISTER,
         LOGIN,
         POST_IMAGE,
-        DISPLAY
+        DISPLAY,
+        NOTIFICATION
     }
 
     public enum Method{

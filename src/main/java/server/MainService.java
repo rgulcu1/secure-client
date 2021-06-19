@@ -35,6 +35,7 @@ public class MainService {
 
         final String userNameConcatPublicKey = user.getUserName() + user.getKeyPair().getPublicKey().getE().toString(16).toUpperCase()
                 + user.getKeyPair().getPublicKey().getN().toString(16).toUpperCase();
+        //TODO add response check
 
         //if(Objects.isNull(response)) return false;
         return true;//serverPublicKey.verifyDigitalSignature(response, userNameConcatPublicKey);
@@ -48,7 +49,7 @@ public class MainService {
 
         final String userNameConcatPublicKey = user.getUserName() + user.getKeyPair().getPublicKey().getE().toString(16).toUpperCase()
                 + user.getKeyPair().getPublicKey().getN().toString(16).toUpperCase();
-
+        //TODO add response check
         //if(Objects.isNull(response)) return false;
         return true;//serverPublicKey.verifyDigitalSignature(response, userNameConcatPublicKey);
     }
@@ -67,8 +68,24 @@ public class MainService {
 
         final JSONObject postImageRequest = preparePostImageRequest(file.getName().split(".")[0], encryptedImageAsString, imageDigitalSignature, encryptedAESKey, IV);
         final String response = serverComm.communicateWithServer(postImageRequest.toString());
+        //TODO add response check
+        return true;
+    }
+
+    public Boolean askForNewImage() {
+        final JSONObject notifyReq = prepareNotificationRequest();
+        final String response = serverComm.communicateWithServer(notifyReq.toString());
+        //TODO add response check
 
         return true;
+    }
+
+    public File displayImage(String imageName) {
+        final JSONObject displayReq = prepareDisplayRequest(imageName);
+        final String response = serverComm.communicateWithServer(displayReq.toString());
+        //TODO add response check
+
+        return null;
     }
 
     private byte[] extractBytes (File imgPath)  {
@@ -123,11 +140,22 @@ public class MainService {
 
     private JSONObject prepareLoginRequest(String username, String password) {
 
-        final JSONObject userJson = new JSONObject()
+        return new JSONObject()
                 .put("username", username)
                 .put("password", Helper.hashWithSHA256(password))
                 .put("requestType", LOGIN);
+    }
 
-        return userJson;
+    private JSONObject prepareNotificationRequest() {
+
+        return new JSONObject()
+                .put("requestType", NOTIFICATION);
+    }
+
+    private JSONObject prepareDisplayRequest(String imageName) {
+
+        return new JSONObject()
+                .put("requestType", DISPLAY)
+                .put("imageName", imageName);
     }
 }

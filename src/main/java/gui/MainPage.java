@@ -25,18 +25,23 @@ public class MainPage extends JFrame {
         container.setLayout(cardLayout);
         container.add("login", new LoginPage());
         container.add("register", new RegisterPage());
-        container.add("flow", new FlowPage());
     }
 
     public static void register(String username, String password) {
         final Boolean registerSuccess = mainService.register(username,password);
-        if(registerSuccess) cardLayout.show(container, "flow");
+        if(registerSuccess){
+            container.add("flow", new FlowPage());
+            cardLayout.show(container, "flow");
+        }
         else System.out.println("Register Failed!");
     }
 
     public static void login(String username, String password) {
         final Boolean loginSuccess = mainService.login(username,password);
-        if(loginSuccess) cardLayout.show(container, "flow");
+        if(loginSuccess) {
+            container.add("flow", new FlowPage());
+            cardLayout.show(container, "flow");
+        }
         else System.out.println("Login Failed!");
     }
 
@@ -51,6 +56,20 @@ public class MainPage extends JFrame {
 
     public static void goToRegisterPage() {
        cardLayout.show(container, "register");
+    }
+
+    public static void askForNewImage() {
+        final Boolean newImagePosted = mainService.askForNewImage();
+        if(newImagePosted) {
+            final NotificationFrame notificationFrame = new NotificationFrame();
+            notificationFrame.setVisible(true);
+            notificationFrame.setSize(400,170);
+            notificationFrame.setLocationRelativeTo(null);
+        }
+    }
+
+    public static void displayImage(String imageName){
+        mainService.displayImage(imageName);
     }
 }
 
