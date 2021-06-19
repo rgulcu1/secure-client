@@ -52,7 +52,7 @@ public class RegisterPage extends JPanel {
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Insert code here
-                MainPage.register(usernameInput.getText(), String.valueOf(passInput.getPassword()));
+                MainFrame.register(usernameInput.getText(), String.valueOf(passInput.getPassword()));
             }
         });
     }

@@ -1,7 +1,13 @@
 package util;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -146,6 +152,42 @@ public class Helper {
     public static String decodeStringToHex(String str) {
 
         return Hex.encodeHexString(str.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static String decodeHexToString(String hexStr) {
+
+        byte[] bytes = new byte[0];
+        try {
+            bytes = Hex.decodeHex(hexStr.toCharArray());
+        } catch (DecoderException e) {
+            e.printStackTrace();
+        }
+        return new String(bytes, StandardCharsets.UTF_8);
+
+    }
+
+    public static String[] divideStringToStringArray(String str,Integer charCount){
+
+        String formattedString = str.replaceAll("(.{" + charCount + "})", "$1 ").trim();
+        return formattedString.split(" ");
+    }
+
+    public static BufferedImage byteArrayToImage(String[] bytes) {
+
+        byte[] byteArr = new byte[bytes.length];
+
+        for (int i = 0; i < bytes.length; i++) {
+            byteArr[i] = Integer.valueOf(bytes[i],16).byteValue();
+        }
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(byteArr);
+        BufferedImage bImage2 = null;
+        try {
+            bImage2 = ImageIO.read(bis);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bImage2;
     }
 
 }

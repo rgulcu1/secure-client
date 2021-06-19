@@ -4,6 +4,7 @@ import cryptography.AES;
 import cryptography.PublicKey;
 import cryptography.SymmetricKey;
 import org.apache.commons.io.FilenameUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import user.User;
 import util.Constants;
@@ -25,7 +26,7 @@ public class MainService {
 
     ServerComm serverComm = new ServerComm();
     User user;
-    final PublicKey serverPublicKey = new PublicKey(new BigInteger(Constants.SERVER_PUBLIC_KEY_N, 16), new BigInteger(Constants.SERVER_PUBLIC_KEY_E, 16));
+    final static PublicKey serverPublicKey = new PublicKey(new BigInteger(Constants.SERVER_PUBLIC_KEY_N, 16), new BigInteger(Constants.SERVER_PUBLIC_KEY_E, 16));
 
     public Boolean register(String username, String password) {
 
@@ -47,9 +48,19 @@ public class MainService {
         return handleStatusCode(response, 200);
     }
 
+    public Boolean logout() {
+        if (Objects.isNull(user)) return true;
+        final JSONObject logoutJson = prepareLogoutRequest(user.getUserName());
+        final String response = serverComm.communicateWithServer(logoutJson.toString());
+        this.user=null;
+        if(Objects.isNull(response)) return false;
+        return handleStatusCode(response, 200);
+    }
+
     public Boolean postImage(File file) {
 
         SymmetricKey k1 = new SymmetricKey(128);
+        System.out.println("actual key :" + k1.getSymetricKeyAsHex());
         final byte[] bytes = extractBytes(file);
         final String[] imageAsBytes = Helper.byteToStringArray(bytes);
         final String[] cipherTextOfImage = AES.streamCipherEncryption(imageAsBytes, k1, Constants.Method.CBC);
@@ -65,20 +76,20 @@ public class MainService {
         return handleStatusCode(response,200);
     }
 
-    public JSONObject askForNewImage() {
+    public JSONArray askForNewImage() {
+        if(Objects.isNull(user)) return null;
         final JSONObject notifyReq = prepareNotificationRequest();
         final String response = serverComm.communicateWithServer(notifyReq.toString());
-        System.out.println(response);
         if(Objects.isNull(response)) return null;
         return handleNotificationResponse(response);
     }
 
-    public File displayImage(String imageName) {
+    public BufferedImage displayImage(String imageName) {
         final JSONObject displayReq = prepareDisplayRequest(imageName);
         final String response = serverComm.communicateWithServer(displayReq.toString());
-        //TODO add response check
+        if(Objects.isNull(response)) return null;
 
-        return null;
+        return handleDisplayResponse(response);
     }
 
     private byte[] extractBytes (File imgPath)  {
@@ -141,12 +152,53 @@ public class MainService {
         return true;
     }
 
-    private JSONObject handleNotificationResponse(String response){
+    private JSONArray handleNotificationResponse(String response){
 
         if(!handleStatusCode(response,200)) return null;
-
-        return null;
+        final JSONObject responseJson = new JSONObject(response);
+        return responseJson.getJSONArray("imageInfos");
     }
+
+    private BufferedImage handleDisplayResponse(String response) {
+
+        final JSONObject responseJson = new JSONObject(response);
+
+        final String encryptedKey = responseJson.getString("key");
+        System.out.println("encKey:" + encryptedKey);
+
+        final String decryptedAESKey = user.getKeyPair().getPrivateKey().decrypt(encryptedKey);
+        System.out.println("decryptedAESKey:" + decryptedAESKey);
+
+        final String encryptedIV = responseJson.getString("IV");
+        final String decryptedIV = user.getKeyPair().getPrivateKey().decrypt(encryptedIV);
+
+        final String certificate = responseJson.getString("certificate");
+        final String certificateOwner = responseJson.getString("owner");
+        final String digitalSignature = responseJson.getString("digitalSignature");
+
+
+        final PublicKey ownerPublicKey = getPublicKeyFromCertificate(certificate, certificateOwner);
+        if(Objects.isNull(ownerPublicKey)) return null;
+        final String decryptedImage = responseJson.getString("image");
+
+
+        final String[] cipherImage = Helper.divideStringToStringArray(decryptedImage, 2);
+        final String[] decryptedImageAsByte = AES.streamCipherDecryption(cipherImage, new SymmetricKey(decryptedAESKey), Constants.Method.CBC, decryptedIV);
+
+        if(!verifyDigitalSignature(digitalSignature, ownerPublicKey, decryptedImageAsByte)) return null;
+
+        return Helper.byteArrayToImage(decryptedImageAsByte);
+    }
+
+    private Boolean verifyDigitalSignature(String digitalSignature, PublicKey ownerPublicKey, String[] decryptedImage){
+
+        String str = String.join("", decryptedImage);
+        final String hashedImage = Helper.hashWithSHA256(str);
+
+        final String decryptedSignature = ownerPublicKey.decrypt(digitalSignature);
+        return hashedImage.equals(decryptedSignature);
+    }
+
 
     private JSONObject preparePostImageRequest(String imageName, String encryptedImage, String digitalSignature, String AESKey, String IV){
 
@@ -185,6 +237,13 @@ public class MainService {
                 .put("requestType", LOGIN);
     }
 
+    private JSONObject prepareLogoutRequest(String username) {
+
+        return new JSONObject()
+                .put("username", username)
+                .put("requestType", LOGOUT);
+    }
+
     private JSONObject prepareNotificationRequest() {
 
         return new JSONObject()
@@ -196,6 +255,30 @@ public class MainService {
 
         return new JSONObject()
                 .put("requestType", DISPLAY)
-                .put("imageName", imageName);
+                .put("imageName", imageName)
+                .put("username", user.getUserName());
     }
+
+    private static PublicKey getPublicKeyFromCertificate(String certificate, String owner) {
+
+        final String decrypt = serverPublicKey.decrypt(certificate);
+
+        final String certificateText = Helper.decodeHexToString(decrypt);
+
+        final JSONObject jsonObject = new JSONObject(certificateText);
+
+        final String certificateOwner = jsonObject.getString("username");
+        if(!owner.equals(certificateOwner)) return null;
+
+        final JSONObject publicKeyJson = jsonObject.getJSONObject("publicKey");
+        final String n = publicKeyJson.getString("n");
+        final String e = publicKeyJson.getString("e");
+
+        return new PublicKey(n,e);
+    }
+
+    public String  getUsername(){
+        return user.getUserName();
+    }
+
 }

@@ -17,6 +17,12 @@ public class PublicKey {
         this.e = e;
     }
 
+    public PublicKey(String n, String e) {
+        this.n = new BigInteger(n,16);
+        this.e = new BigInteger(e,16);;
+    }
+
+
     public String encrypt(final String plainText) {
 
         BigInteger dataAsDecimal = new BigInteger(plainText, 16);
@@ -30,24 +36,5 @@ public class PublicKey {
         return plainAsDecimal.toString(16).toUpperCase();
     }
 
-    public Boolean verifyDigitalSignature(String digitalSignature, String data){
 
-        String decryptedMessage = decrypt(digitalSignature);
-
-        System.out.print("Decrypt digital signature with Ka+. The result is : ");
-        System.out.println(decryptedMessage);
-
-        System.out.print("Apply hash to message and compare. Hashed message: ");
-        String hashedData = Helper.hashWithSHA256(data);;
-        System.out.println(hashedData);
-
-        if (decryptedMessage.equals(hashedData)) {
-            System.out.println("These are equal. Digital signature verified.");
-            return true;
-        }else{
-            System.out.println("These are not equal. The digital signature could not be verified");
-            return false;
-        }
-
-    }
 }

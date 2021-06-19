@@ -54,7 +54,7 @@ public class LoginPage extends JPanel {
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Insert code here
-                MainPage.login(usernameInput.getText(), String.valueOf(passInput.getPassword()));
+                MainFrame.login(usernameInput.getText(), String.valueOf(passInput.getPassword()));
             }
         });
 
@@ -72,7 +72,7 @@ public class LoginPage extends JPanel {
         goToRegisterLabel2.addMouseListener(new MouseAdapter(){
             public void mouseClicked(MouseEvent me)
             {
-                MainPage.goToRegisterPage();
+                MainFrame.goToRegisterPage();
             }
         });
 

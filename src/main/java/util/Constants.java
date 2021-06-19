@@ -24,6 +24,7 @@ public final class Constants {
     public enum RequestType {
         REGISTER,
         LOGIN,
+        LOGOUT,
         POST_IMAGE,
         DISPLAY,
         NOTIFICATION

@@ -20,6 +20,11 @@ public class SymmetricKey{
         this.symetricKey = generateSymmetricKey(bitsize);
     }
 
+    public SymmetricKey(String symetricKey) {
+
+        this.symetricKey = new BigInteger(symetricKey, 16).toString(2);
+    }
+
     private String generateSymmetricKey(int bitsize) {
 
 

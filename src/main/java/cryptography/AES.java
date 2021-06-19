@@ -103,8 +103,8 @@ public class AES {
         return cipherText;
     }
 
-    public static String[] streamCipherDecryption(String[] cipherText, SymmetricKey key, Method streamMethod) {
-
+    public static String[] streamCipherDecryption(String[] cipherText, SymmetricKey key, Method streamMethod, String IV) {
+        setIV(IV);
         switch (streamMethod) {
             case CBC:
                 return CBCStreamCipherDecryption(cipherText, key);
@@ -560,5 +560,15 @@ public class AES {
         }
         return stringBuilder.toString();
     }
+    private static void setIV(String IV) {
+
+        final String[] strings = Helper.divideStringToStringArray(IV, 2);
+
+        for (int i = 0; i < strings.length; i++) {
+            AES.IV[i/4][i%4] = strings[i];
+        }
+    }
 }
+
+
 

@@ -4,10 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 
 public class NotificationFrame extends JFrame {
-
-    public NotificationFrame(String imageName, String username) throws HeadlessException {
+    Frame frame = this;
+    public NotificationFrame(String title, String imageName, String username) throws HeadlessException {
+        super(title);
         addElements(imageName, username);
     }
 
@@ -47,7 +49,8 @@ public class NotificationFrame extends JFrame {
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Insert code here
-                MainPage.displayImage(imageName);
+                dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                MainFrame.displayImage(imageName);
             }
         });
     }

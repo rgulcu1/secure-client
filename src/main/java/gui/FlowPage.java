@@ -10,13 +10,27 @@ public class FlowPage extends JPanel {
 
     private static final String basePath = System.getProperty("user.dir");
 
-    public FlowPage() {
+    public FlowPage(String username) {
         setLayout(null);
-        addElements();
+        addElements(username);
         addNotificationHandler();
     }
 
-    private void addElements() {
+    private void addElements(String username) {
+
+        JLabel helloLabel = new JLabel("Hello "+username+"!");
+        helloLabel.setFont(helloLabel.getFont().deriveFont(64.0f));
+        this.add(helloLabel);
+        helloLabel.setBounds(500 - helloLabel.getPreferredSize().width/2,100,helloLabel.getPreferredSize().width, helloLabel.getPreferredSize().height);
+
+        JButton logoutBtn = new JButton("Logout");
+        add(logoutBtn);
+        logoutBtn.setBounds(850, 20, 100, 50);
+        logoutBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                MainFrame.logout();
+            }
+        });
 
         JButton button = new JButton("IMAGE POST");
         add(button);
@@ -30,10 +44,10 @@ public class FlowPage extends JPanel {
     }
 
     private void addNotificationHandler() {
-        int delay = 3000; //milliseconds
+        int delay = 500; //milliseconds
         ActionListener taskPerformer = new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                MainPage.askForNewImage();
+                MainFrame.askForNewImage();
             }
         };
         new Timer(delay, taskPerformer).start();
@@ -48,7 +62,7 @@ public class FlowPage extends JPanel {
         try {
             if (res == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
-                MainPage.postImage(file);
+                MainFrame.postImage(file);
             } // Oops!
             else {
                 JOptionPane.showMessageDialog(null,
