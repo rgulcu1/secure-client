@@ -9,6 +9,7 @@ import user.User;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.Objects;
 
 
 public class MainPage extends JFrame {
@@ -33,7 +34,7 @@ public class MainPage extends JFrame {
             container.add("flow", new FlowPage());
             cardLayout.show(container, "flow");
         }
-        else System.out.println("Register Failed!");
+        else System.err.println("Register Failed!");
     }
 
     public static void login(String username, String password) {
@@ -59,9 +60,9 @@ public class MainPage extends JFrame {
     }
 
     public static void askForNewImage() {
-        final Boolean newImagePosted = mainService.askForNewImage();
-        if(newImagePosted) {
-            final NotificationFrame notificationFrame = new NotificationFrame();
+        final JSONObject newImagePosted = mainService.askForNewImage();
+        if(Objects.nonNull(newImagePosted)) {
+            final NotificationFrame notificationFrame = new NotificationFrame(newImagePosted.getString("imageName"), newImagePosted.getString("username"));
             notificationFrame.setVisible(true);
             notificationFrame.setSize(400,170);
             notificationFrame.setLocationRelativeTo(null);

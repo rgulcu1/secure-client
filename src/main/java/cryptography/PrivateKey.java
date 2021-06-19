@@ -1,9 +1,11 @@
 package cryptography;
 
+import lombok.Getter;
 import util.Helper;
 
 import java.math.BigInteger;
 
+@Getter
 public class PrivateKey{
 
     private BigInteger n;

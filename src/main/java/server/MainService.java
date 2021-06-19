@@ -33,12 +33,8 @@ public class MainService {
         final JSONObject userJson = prepareRegisterRequest(username, password);
         final String response = serverComm.communicateWithServer(userJson.toString());
 
-        final String userNameConcatPublicKey = user.getUserName() + user.getKeyPair().getPublicKey().getE().toString(16).toUpperCase()
-                + user.getKeyPair().getPublicKey().getN().toString(16).toUpperCase();
-        //TODO add response check
-
-        //if(Objects.isNull(response)) return false;
-        return true;//serverPublicKey.verifyDigitalSignature(response, userNameConcatPublicKey);
+        if(Objects.isNull(response)) return false;
+        return verifyRegisterResponse(response);
     }
 
     public Boolean login(String username, String password) {
@@ -47,11 +43,8 @@ public class MainService {
         final JSONObject userJson = prepareLoginRequest(username, password);
         final String response = serverComm.communicateWithServer(userJson.toString());
 
-        final String userNameConcatPublicKey = user.getUserName() + user.getKeyPair().getPublicKey().getE().toString(16).toUpperCase()
-                + user.getKeyPair().getPublicKey().getN().toString(16).toUpperCase();
-        //TODO add response check
-        //if(Objects.isNull(response)) return false;
-        return true;//serverPublicKey.verifyDigitalSignature(response, userNameConcatPublicKey);
+        if(Objects.isNull(response)) return false;
+        return handleStatusCode(response, 200);
     }
 
     public Boolean postImage(File file) {
@@ -59,25 +52,25 @@ public class MainService {
         SymmetricKey k1 = new SymmetricKey(128);
         final byte[] bytes = extractBytes(file);
         final String[] imageAsBytes = Helper.byteToStringArray(bytes);
-
         final String[] cipherTextOfImage = AES.streamCipherEncryption(imageAsBytes, k1, Constants.Method.CBC);
         String encryptedImageAsString = String.join("", cipherTextOfImage);
-        final String IV = AES.getIVAsString();
+        final String IV = serverPublicKey.encrypt(AES.getIVAsString());
         final String imageDigitalSignature = createImageDigitalSignature(imageAsBytes);
         final String encryptedAESKey = serverPublicKey.encrypt(k1.getSymetricKeyAsHex());
 
-        final JSONObject postImageRequest = preparePostImageRequest(file.getName().split(".")[0], encryptedImageAsString, imageDigitalSignature, encryptedAESKey, IV);
+        final String[] split = file.getName().split("\\.");
+        final JSONObject postImageRequest = preparePostImageRequest(split[0], encryptedImageAsString, imageDigitalSignature, encryptedAESKey, IV);
         final String response = serverComm.communicateWithServer(postImageRequest.toString());
-        //TODO add response check
-        return true;
+        if(Objects.isNull(response)) return false;
+        return handleStatusCode(response,200);
     }
 
-    public Boolean askForNewImage() {
+    public JSONObject askForNewImage() {
         final JSONObject notifyReq = prepareNotificationRequest();
         final String response = serverComm.communicateWithServer(notifyReq.toString());
-        //TODO add response check
-
-        return true;
+        System.out.println(response);
+        if(Objects.isNull(response)) return null;
+        return handleNotificationResponse(response);
     }
 
     public File displayImage(String imageName) {
@@ -110,6 +103,51 @@ public class MainService {
         return user.getKeyPair().getPrivateKey().encrypt(hashedImage);
     }
 
+    private Boolean verifyRegisterResponse(String response) {
+
+        if(!handleStatusCode(response,201)) return false;
+
+        final JSONObject userJson = new JSONObject()
+                .put("username", user.getUserName());
+
+        final JSONObject userPublicKey = new JSONObject()
+                .put("n", user.getKeyPair().getPublicKey().getN().toString(16).toUpperCase())
+                .put("e", user.getKeyPair().getPublicKey().getE().toString(16).toUpperCase());
+        userJson.put("publicKey", userPublicKey);
+
+        final String expectedCertificate = Helper.decodeStringToHex(userJson.toString()).toUpperCase();
+
+        final JSONObject jsonResponse = new JSONObject(response);
+        final String encryptedCertificate = jsonResponse.getString("certificate");
+
+        final String actualCertificate = serverPublicKey.decrypt(encryptedCertificate);
+
+        if (expectedCertificate.equals(actualCertificate)) return true;
+
+        System.err.println("Certificates are not match");
+        return false;
+    }
+
+    private Boolean handleStatusCode(String response, Integer expectedStatus){
+
+        final JSONObject jsonResponse = new JSONObject(response);
+
+        final int statusCode = jsonResponse.getInt("statusCode");
+        if (statusCode != expectedStatus) {
+            final String message = jsonResponse.getString("message");
+            if(!message.equals(""))System.err.println(message);
+            return false;
+        }
+        return true;
+    }
+
+    private JSONObject handleNotificationResponse(String response){
+
+        if(!handleStatusCode(response,200)) return null;
+
+        return null;
+    }
+
     private JSONObject preparePostImageRequest(String imageName, String encryptedImage, String digitalSignature, String AESKey, String IV){
 
         final JSONObject imageJson = new JSONObject()
@@ -118,6 +156,7 @@ public class MainService {
                 .put("key", AESKey)
                 .put("image", encryptedImage)
                 .put("digitalSignature", digitalSignature)
+                .put("owner", user.getUserName())
                 .put("IV", IV);
 
         return imageJson;
@@ -149,7 +188,8 @@ public class MainService {
     private JSONObject prepareNotificationRequest() {
 
         return new JSONObject()
-                .put("requestType", NOTIFICATION);
+                .put("requestType", NOTIFICATION)
+                .put("username", user.getUserName());
     }
 
     private JSONObject prepareDisplayRequest(String imageName) {

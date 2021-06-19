@@ -1,5 +1,7 @@
 package util;
 
+import org.apache.commons.codec.binary.Hex;
+
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -139,6 +141,11 @@ public class Helper {
         }
 
         return strArr;
+    }
+
+    public static String decodeStringToHex(String str) {
+
+        return Hex.encodeHexString(str.getBytes(StandardCharsets.UTF_8));
     }
 
 }

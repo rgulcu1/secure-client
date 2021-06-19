@@ -7,8 +7,8 @@ import java.awt.event.ActionListener;
 
 public class NotificationFrame extends JFrame {
 
-    public NotificationFrame() throws HeadlessException {
-        addElements("Yüzyıllık yalnızlık", "rgulcu1");
+    public NotificationFrame(String imageName, String username) throws HeadlessException {
+        addElements(imageName, username);
     }
 
     private void addElements(String imageName, String username) {
